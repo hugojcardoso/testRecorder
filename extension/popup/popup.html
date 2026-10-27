@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Playwright Recorder</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo-area">
+        <div class="logo-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" stroke="#ef4444" fill="#1e293b"/>
+            <polygon points="10 8 16 12 10 16 10 8" fill="#22c55e" stroke="#22c55e"/>
+          </svg>
+        </div>
+        <div class="title-group">
+          <h1>Playwright Recorder</h1>
+          <span class="version">v1.0.0</span>
+        </div>
+      </div>
+      <div class="status-indicator" id="status-pill">
+        <span class="status-dot" id="status-dot"></span>
+        <span class="status-text" id="status-text">Pronto</span>
+      </div>
+    </header>
+
+    <!-- Toolbar / Controls -->
+    <section class="controls-section">
+      <div class="primary-controls">
+        <button id="btn-start" class="btn btn-record" title="Iniciar nova gravação">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="12" cy="12" r="9"/>
+          </svg>
+          <span>Gravar</span>
+        </button>
+
+        <button id="btn-pause" class="btn btn-secondary" disabled title="Pausar gravação">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <rect x="6" y="4" width="4" height="16" rx="1"/>
+            <rect x="14" y="4" width="4" height="16" rx="1"/>
+          </svg>
+          <span>Pausar</span>
+        </button>
+
+        <button id="btn-stop" class="btn btn-danger" disabled title="Parar gravação">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <rect x="5" y="5" width="14" height="14" rx="2"/>
+          </svg>
+          <span>Parar</span>
+        </button>
+      </div>
+
+      <!-- Main Action Buttons (Replay & Download) -->
+      <div class="actions-grid">
+        <button id="btn-replay" class="btn btn-replay" disabled title="Executar automaticamente as ações gravadas na aba atual">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="5 3 19 12 5 21 5 3"/>
+          </svg>
+          <span id="replay-btn-text">Executar Gravação</span>
+        </button>
+
+        <button id="btn-download" class="btn btn-download" title="Baixar script Playwright formatado em JavaScript">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          <span>Baixar (.js)</span>
+        </button>
+      </div>
+
+      <!-- Replay Progress Banner (shown during execution) -->
+      <div id="replay-progress-card" class="replay-card hidden">
+        <div class="replay-header">
+          <span class="replay-title">▶ Executando no Navegador</span>
+          <span id="replay-step-counter" class="replay-badge">Passo 0/0</span>
+        </div>
+        <div class="replay-desc" id="replay-current-desc">Aguardando...</div>
+        <div class="progress-bar-container">
+          <div id="replay-progress-bar" class="progress-bar-fill" style="width: 0%"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Settings Bar -->
+    <section class="settings-bar">
+      <div class="setting-item">
+        <label for="input-test-name">Nome:</label>
+        <input type="text" id="input-test-name" value="teste gravado" placeholder="Nome...">
+      </div>
+      <div class="setting-item">
+        <label for="select-replay-speed">Velocidade:</label>
+        <select id="select-replay-speed">
+          <option value="800">Normal (0.8s)</option>
+          <option value="350">Rápido (0.3s)</option>
+          <option value="1500">Lento (1.5s)</option>
+        </select>
+      </div>
+      <div class="setting-item">
+        <label for="select-module-type">Módulo:</label>
+        <select id="select-module-type">
+          <option value="esm">ESM</option>
+          <option value="cjs">CJS</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+      <div class="action-count-badge">
+        <span id="action-count">0</span> ações registradas
+      </div>
+      <div class="secondary-actions">
+        <button id="btn-copy" class="btn-icon" title="Copiar código gerado">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>
+          <span>Copiar</span>
+        </button>
+        <button id="btn-clear" class="btn-icon btn-icon-danger" title="Limpar todas as ações">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"/>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+          </svg>
+          <span>Limpar</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Live Code Preview Area -->
+    <section class="code-preview-section">
+      <div class="code-wrapper">
+        <pre><code id="code-output">// O código do Playwright aparecerá aqui em tempo real conforme você interage com o site...</code></pre>
+      </div>
+    </section>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden"></div>
+  </div>
+
+  <script src="../utils/code-generator.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

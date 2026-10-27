@@ -1,0 +1,21 @@
+{
+  "name": "testrecorder",
+  "version": "1.0.0",
+  "description": "Gravador de Ações e Testes Playwright para Google Chrome",
+  "main": "index.js",
+  "scripts": {
+    "test": "node --test tests/*.test.cjs",
+    "generate-icons": "node scripts/generate-icons.js"
+  },
+  "keywords": [
+    "playwright",
+    "recorder",
+    "chrome-extension",
+    "test"
+  ],
+  "type": "commonjs",
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@types/node": "^26.6.5"
+  }
+}
